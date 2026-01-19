@@ -1,81 +1,92 @@
-import express, { Request, Response } from "express";
-import bodyParser from "body-parser";
+import express from "express";
 
-const app = express();
+export const app = express();
 
-const port = process.env.PORT || 3001;
+const port = 3000;
 
-const products = [
-  { id: 1, title: "tomato" },
-  { id: 2, title: "orange" },
-];
-const addresses = [
-  { id: 1, value: "Kominterna 33" },
-  { id: 2, value: "Karuni75" },
-];
+export const HTTP_STATUSES = {
+  OK_200: 200,
+  CREATE_201: 201,
+  NO_CONTET_204: 204,
 
-app.use(express.json());
+  BAD_REQUEST_400: 400,
+  NOT_FOUND_404: 404,
+};
 
-app.get("/products", (req: Request, res: Response) => {
+const jsonBodyMiddleware = express.json();
+
+app.use(jsonBodyMiddleware);
+
+const db = {
+  courses: [
+    { id: 1, title: "front-end" },
+    { id: 2, title: "back-end" },
+    { id: 3, title: "automation" },
+    { id: 4, title: "devops" },
+  ],
+};
+
+app.get("/courses", (req, res) => {
+  let foundCourses = db.courses;
+
   if (req.query.title) {
-    let searchString = req.query.title.toString();
-    res.send(products.filter((p) => p.title.indexOf(searchString) > -1));
-  } else {
-    res.send(products);
+    foundCourses = foundCourses.filter(
+      (c) => c.title.indexOf(req.query.title as string) > -1,
+    );
   }
-});
-app.get("/products/:id", (req: Request, res: Response) => {
-  let product = products.find((p) => p.id === +req.params.id);
 
-  if (product) {
-    res.send(product);
-  } else {
-    res.send(404);
+  res.json(foundCourses);
+});
+app.get("/courses/:id", (req, res) => {
+  let foundCourses = db.courses.find((c) => c.id === +req.params.id);
+
+  if (!foundCourses) {
+    res.sendStatus(HTTP_STATUSES.NOT_FOUND_404);
+    return;
   }
+
+  res.json(foundCourses);
 });
-app.delete("/products/:id", (req: Request, res: Response) => {
-  products.find((p) => p.id === +req.params.id);
-  for (let i = 0; i < products.length; i++) {
-    if (products[i].id === +req.params.id) {
-      products.splice(i, 1);
-      res.send(204);
-      return;
-    }
+app.post("/courses", (req, res) => {
+  if (!req.body.title) {
+    res.sendStatus(400);
+    return;
   }
-  res.send(404);
+  const createCourses = {
+    id: +new Date(),
+    title: req.body.title,
+  };
+  db.courses.push(createCourses);
+  res.status(HTTP_STATUSES.CREATE_201).json(createCourses);
+});
+app.delete("/courses/:id", (req, res) => {
+  db.courses = db.courses.filter((c) => c.id !== +req.params.id);
+
+  res.sendStatus(HTTP_STATUSES.NO_CONTET_204);
 });
 
-app.get("/address", (req: Request, res: Response) => {
-  res.send(addresses);
-});
-
-app.get("/address/:id", (req: Request, res: Response) => {
-  let address = addresses.find((p) => p.id === +req.params.id);
-
-  if (address) {
-    res.send(address);
-  } else {
-    res.send(404);
+app.put("/courses/:id", (req, res) => {
+  if (!req.body.title) {
+    res.sendStatus(HTTP_STATUSES.BAD_REQUEST_400);
+    return;
   }
-});
+  let foundCourses = db.courses.find((c) => c.id === +req.params.id);
 
-app.post("/products", (req: Request, res: Response) => {
-  const newProduct = { id: +new Date(), title: req.body.title };
-  products.push(newProduct);
-  res.status(201).send(newProduct);
-});
-
-app.put("/products/:id", (req: Request, res: Response) => {
-  let product = products.find((p) => p.id === +req.params.id);
-
-  if (product) {
-    product.title = req.body.title;
-    res.send(product);
-  } else {
-    res.send(404);
+  if (!foundCourses) {
+    res.sendStatus(HTTP_STATUSES.NOT_FOUND_404);
+    return;
   }
+  foundCourses.title = req.body.title;
+  res.sendStatus(HTTP_STATUSES.NO_CONTET_204);
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening on port: ${port}`);
+app.delete("/__test__/data", (req, res) => {
+  db.courses = [];
+  res.sendStatus(204);
 });
+
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Example app listening on port ${port}`);
+  });
+}
