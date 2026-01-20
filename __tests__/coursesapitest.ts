@@ -1,5 +1,7 @@
 import request from "supertest";
 import { app, HTTP_STATUSES } from "../src/index";
+import { CourseCreateModel } from "../src/models/CourseCreateModel";
+import { CourseUpdateModel } from "../src/models/CourseUpdateModel";
 
 describe("/courses", () => {
   beforeAll(async () => {
@@ -15,9 +17,10 @@ describe("/courses", () => {
   });
 
   it("should not create courses with incorrect input data", async () => {
+    const data: CourseCreateModel = { title: "" };
     await request(app)
       .post("/courses/")
-      .send({ title: "" })
+      .send(data)
       .expect(HTTP_STATUSES.BAD_REQUEST_400);
 
     await request(app).get("/courses/").expect(HTTP_STATUSES.OK_200, []);
@@ -27,16 +30,18 @@ describe("/courses", () => {
   let createCourses2: any = null;
 
   it("should create two courses with correct input data", async () => {
+    const data1: CourseCreateModel = { title: "course 1" };
     const res1 = await request(app)
       .post("/courses/")
-      .send({ title: "course 1" })
+      .send(data1)
       .expect(HTTP_STATUSES.CREATE_201);
 
     createCourses1 = res1.body;
 
+    const data2: CourseCreateModel = { title: "course 2" };
     const res2 = await request(app)
       .post("/courses/")
-      .send({ title: "course 2" })
+      .send(data2)
       .expect(HTTP_STATUSES.CREATE_201);
 
     createCourses2 = res2.body;
@@ -57,9 +62,10 @@ describe("/courses", () => {
   });
 
   it("should not update course with incorrect input data", async () => {
+    const data: CourseCreateModel = { title: "" };
     await request(app)
       .put("/courses/" + createCourses2.id)
-      .send({ title: "" })
+      .send(data)
       .expect(HTTP_STATUSES.BAD_REQUEST_400);
 
     await request(app)
@@ -75,16 +81,17 @@ describe("/courses", () => {
   });
 
   it("should update course with correct input data", async () => {
+    const data: CourseUpdateModel = { title: "good new title" };
     await request(app)
       .put("/courses/" + createCourses1.id)
-      .send({ title: "good new title" })
+      .send(data)
       .expect(HTTP_STATUSES.NO_CONTET_204);
 
     await request(app)
       .get("/courses/" + createCourses1.id)
       .expect(HTTP_STATUSES.OK_200, {
         ...createCourses1,
-        title: "good new title",
+        title: data.title,
       });
   });
 
