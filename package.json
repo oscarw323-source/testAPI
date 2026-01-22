@@ -13,7 +13,7 @@
     "watch": "tsc -w",
     "devs": "nodemon ./dist/index.js",
     "heroku-postbuild": "yarn build",
-    "test": "jest"
+    "test": "jest --detectOpenHandles --no-cache"
   },
   "dependencies": {
     "@types/jest": "^30.0.0",
