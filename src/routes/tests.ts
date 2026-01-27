@@ -6,7 +6,7 @@ export const getTestsRoutes = () => {
   const router = express.Router();
 
   router.delete("/data", (req, res) => {
-    coursesRepository.clearAllCourses(); // Используем метод repository
+    coursesRepository.clearAllCourses();
     res.sendStatus(204);
   });
 
