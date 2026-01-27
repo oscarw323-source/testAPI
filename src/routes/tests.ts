@@ -1,11 +1,12 @@
 import express from "express";
 
-import { DBType } from "../db";
+import { coursesRepository } from "../repositories/courses-repository";
 
-export const getTestsRoutes = (db: DBType) => {
+export const getTestsRoutes = () => {
   const router = express.Router();
+
   router.delete("/data", (req, res) => {
-    db.courses = [];
+    coursesRepository.clearAllCourses(); // Используем метод repository
     res.sendStatus(204);
   });
 
