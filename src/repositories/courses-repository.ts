@@ -1,30 +1,30 @@
 import { CoursesType, DBType } from "../db";
 import { CoursesViewModel } from "../models/CoursesViewModel";
 
-let courses: CoursesType[] = [
-  { id: 1, title: "front-end", studentsCount: 10 },
-  { id: 2, title: "back-end", studentsCount: 10 },
-  { id: 3, title: "automation", studentsCount: 10 },
-  { id: 4, title: "devops", studentsCount: 10 },
-];
-const mapToViewModel = (dbCourse: CoursesType): CoursesViewModel => {
+let courses: CoursesType[] = [];
+export const mapToViewModel = (dbCourse: CoursesType): CoursesViewModel => {
   return {
     id: dbCourse.id,
     title: dbCourse.title,
   };
 };
 
+export const runDb = async () => {
+  console.log("In-memory database initialized");
+};
+
 export const coursesRepository = {
-  findCourses(title: string | null | undefined): CoursesType[] {
+  async findCourses(title: string | null | undefined): Promise<CoursesType[]> {
     let filteredCourses = courses;
 
     if (title) {
       filteredCourses = filteredCourses.filter(
         (c) => c.title.indexOf(title) > -1,
       );
+      return filteredCourses;
+    } else {
+      return courses;
     }
-
-    return filteredCourses;
   },
 
   getCoursesById(id: number) {
@@ -37,7 +37,7 @@ export const coursesRepository = {
     return mapToViewModel(foundCourse);
   },
 
-  createdCourse(title: string): CoursesViewModel | null {
+  async createdCourse(title: string): Promise<CoursesViewModel | null> {
     if (!title) {
       return null;
     }
@@ -52,7 +52,7 @@ export const coursesRepository = {
     return mapToViewModel(newCourse);
   },
 
-  updateCourse(id: number, title: string): boolean {
+  async updateCourse(id: number, title: string): Promise<boolean> {
     if (!title) {
       return false;
     }
@@ -66,7 +66,7 @@ export const coursesRepository = {
     foundCourse.title = title;
     return true;
   },
-  deleteCourse(id: number) {
+  async deleteCourse(id: number): Promise<boolean> {
     const initialLength = courses.length;
 
     courses = courses.filter((c) => c.id !== id);
